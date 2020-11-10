@@ -5,7 +5,7 @@ import math
 import subprocess
 import statistics
 from Bio.PDB import *
-from jcalc.settings import HUGGINS_ELECTRO,GROMACS_VERSION
+from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 
 
 class JCalcPdb:
