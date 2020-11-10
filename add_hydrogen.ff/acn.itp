@@ -1,0 +1,27 @@
+[ moleculetype ]
+; molname       nrexcl
+ACN             3
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+; residue   1 ACN rtp ACN  q  0.0
+     1        CH3      1    ACN    CH3      1      0.287     15.035   ; qtot 0.287
+     2          C      1    ACN     CN      1     0.1376      0.000   ; qtot 0.4246
+     3          N      1    ACN      N      1    -0.4246      0.000   ; qtot 0
+     4        DUM      1    ACN    DUM      1          0     26.078   ; qtot 0
+
+[ bonds ]
+;  ai    aj funct            c0            c1            c2            c3
+    1     2     2    gb_61
+    2     3     2    gb_60
+
+[ constraints ]
+;  ai    aj funct            c0            c1
+   1      4     1  2.211845e-01  0.000000e+00
+
+[ virtual_sites2]
+; site  ai  aj  funct   a
+   2    1    4     1  6.465192e-01
+   3    1    4     1  1.167807e+00 
+
+
