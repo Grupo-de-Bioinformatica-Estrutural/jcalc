@@ -161,7 +161,7 @@ class JCalcMd:
             with open(f"{j}_values.tsv","w") as j_file:
                 for pdb in self.all_j_values:
                     j_value = self.all_j_values[pdb].j_values[j]
-                    j_file.write(f"{pdb}\t{j_value}\n")
+                    j_file.write(f"{pdb}\t{round(j_value,2)}\n")
 
     def write_results(self, stats_filename):
 
