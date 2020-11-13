@@ -120,7 +120,7 @@ class JCalcMd:
         # Mean calc
         mean_results = {}
         for j in statistics_dict:
-            mean_results[j] = statistics.fmean(statistics_dict[j])
+            mean_results[j] = statistics.mean(statistics_dict[j])
         self.mean_results = mean_results
 
         # Stdev calc
