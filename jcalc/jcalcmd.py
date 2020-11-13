@@ -114,7 +114,7 @@ class JCalcMd:
 
         for pdb in self.all_j_values:
             for j_name,j_value in self.all_j_values[pdb].j_values.items():
-                statistics_values[j_name].append(j_value)
+                statistics_dict[j_name].append(j_value)
 
         # Now, calc statistics
         # Mean calc
