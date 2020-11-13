@@ -68,4 +68,4 @@ hydrogen to implicit GROMOS simulations""",
     teste.add_hydrogen()
     teste.calc_md_j()
     teste.calc_statistics()
-    teste.write_results()
+    teste.write_results("statistical_results.txt")

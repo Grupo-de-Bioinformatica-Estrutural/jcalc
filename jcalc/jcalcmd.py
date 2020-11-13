@@ -126,7 +126,7 @@ class JCalcMd:
         # Stdev calc
         stdev_results = {}
         for j in statistics_dict:
-            mean_results[j] = statistics.stdev(statistics_dict[j])
+            stdev_results[j] = statistics.stdev(statistics_dict[j])
 
         self.stdev_results = stdev_results
 
