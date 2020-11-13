@@ -48,6 +48,12 @@ lating 3JH,H values thorugh molecular dynamics""", required=False,
 constants will be calculated. Read documentation for information on format"""
                        )
 
+    parser.add_argument("--ff", "--ff_hydro", dest="ff_hydro", type=str,
+                        help=""".ff dir with hydrogen information when adding \
+hydrogen to implicit GROMOS simulations""",
+                        required=False
+                       )
+
     args = parser.parse_args()
 
 
