@@ -29,13 +29,15 @@ class JCalcMd:
             Usage:
               JCalcMd.create_frames()
         """
+        frames_dir = os.getcwd() + f"/frames{self.suffix}"
+        logging.info(f"Creating frames, path: {frames_dir}")
         os.mkdir(f"frames{self.suffix}/")
         subprocess.call(f"echo 2 2 | {GROMACS_VERSION} trjconv -s {self.tpr} \
                           -f {self.xtc} -sep -skip {self.skip} \
-                          -o frames{self.suffix}/frame_.pdb -pbc mol -center",
+                          -o {frames_dir}/frame_.pdb -pbc mol -center",
                           shell=True
                        )
-        frames = os.listdir(f"frames{self.suffix}/")
+        frames = os.listdir(frames_dir)
         frames = sorted(frames,
                         key=lambda x: int(x.split("_")[1].split(".")[0])
                        )
@@ -49,7 +51,7 @@ class JCalcMd:
             Usage:
               JCalcMd.add_hydrogen()
         """
-
+        logging.info("Adding hydrogen to frames (GROMOS non-polar hydrogen)")
         for pdb in self.frames:
             subprocess.call(f"echo 3 | {GROMACS_VERSION} pdb2gmx -quiet \
                              -f frames{self.suffix}/{pdb} \
@@ -76,6 +78,7 @@ class JCalcMd:
             Usage:
         """
 
+        logging.info("Calculating J values from MD")
         all_j_values = {}
         n_frames = 0
 
@@ -108,6 +111,7 @@ class JCalcMd:
               JCalcMd.calc_statistics()
         """
 
+        logging.info("Calculating Statistics from J values")
         statistics_dict = {}
 
         for j in self.j_names:
@@ -159,6 +163,8 @@ class JCalcMd:
         """
 
         for j in self.j_names:
+            out_file = os.getcwd() + f"/{j}_values.tsv"
+            logging.info(f"Writing J{j} values through MD, path: {out_file}")
             with open(f"{j}_values.tsv","w") as j_file:
                 for pdb in self.all_j_values:
                     j_value = self.all_j_values[pdb].j_values[j]
@@ -180,6 +186,8 @@ class JCalcMd:
         """
 
         # Write statistics results
+        stats_file = os.getcwd() + f"/{stats_filename}"
+        logging.info(f"Writing J statistics resuls, path: {stats_file}")
         self.write_statistics(out_name=stats_filename)
 
         # Write J values results through Molecular Dynamics
