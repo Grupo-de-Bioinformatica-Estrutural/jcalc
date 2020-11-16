@@ -12,7 +12,13 @@ from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 from jcalc.jcalcpdb import JCalcPdb
 from jcalc.jcalcmd import JCalcMd
 import argparse
-
+import logging
+# Log configurations
+logging.basicConfig(filename="jcalc.log", filemode="w",
+                    format="%(asctime)s - %(message)s",
+                    datefmt='%m/%d/%Y %H:%M:%S',
+                    level=logging.INFO
+                   )
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import statistics
 from Bio.PDB import *
 from jcalc.jcalcpdb import JCalcPdb
 from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
+import logging
 
 class JCalcMd:
     """
