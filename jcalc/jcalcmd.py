@@ -8,18 +8,22 @@ from Bio.PDB import *
 from jcalc.jcalcpdb import JCalcPdb
 from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 import logging
+from pathlib import Path
 
 class JCalcMd:
     """
     """
 
     def __init__(self, xtc, tpr, residue, suffix, skip, j_input):
+
+        self.wkdir = Path.cwd()
         self.xtc = xtc
         self.tpr = tpr
         self.residue = residue
         self.suffix = suffix
         self.skip = skip
-        self.j_input = j_input
+        self.j_input = self.wkdir.joinpath(j_input)
+        self.frames_dir = self.wkdir.joinpath(f"frames{self.suffix}")
 
     def create_frames(self):
         """ Description:
@@ -29,15 +33,21 @@ class JCalcMd:
             Usage:
               JCalcMd.create_frames()
         """
-        frames_dir = os.getcwd() + f"/frames{self.suffix}"
-        logging.info(f"Creating frames, path: {frames_dir}")
-        os.mkdir(f"frames{self.suffix}/")
+        frames_dir = self.frames_dir
+        logging.info(f"Creating frames, path: {str(frames_dir.resolve())}")
+        if frames_dir.exists():
+            logging.error(f"Dir {str(frames_dir.resolve())} exists, \
+please rename it or remove it")
+        else:
+            frames_dir.mkdir()
+
         subprocess.call(f"echo 2 2 | {GROMACS_VERSION} trjconv -s {self.tpr} \
                           -f {self.xtc} -sep -skip {self.skip} \
-                          -o {frames_dir}/frame_.pdb -pbc mol -center",
+                          -o {str(frames_dir.resolve())}/frame_.pdb -pbc mol \
+                          -center",
                           shell=True
                        )
-        frames = os.listdir(frames_dir)
+        frames = os.listdir(str(frames_dir.resolve()))
         frames = sorted(frames,
                         key=lambda x: int(x.split("_")[1].split(".")[0])
                        )
@@ -51,17 +61,19 @@ class JCalcMd:
             Usage:
               JCalcMd.add_hydrogen()
         """
+
+        frames_dir = self.frames_dir
         logging.info("Adding hydrogen to frames (GROMOS non-polar hydrogen)")
         for pdb in self.frames:
             subprocess.call(f"echo 3 | {GROMACS_VERSION} pdb2gmx -quiet \
-                             -f frames{self.suffix}/{pdb} \
-                             -o frames{self.suffix}/{pdb}_hydro.pdb \
+                             -f {str(frames_dir.resolve())}/{pdb} \
+                             -o {str(frames_dir.resolve())}/{pdb}_hydro.pdb \
                              -ff add_hydrogen", shell=True
                            )
             subprocess.call(f"rm *.top", shell=True)
             subprocess.call(f"rm *.itp", shell=True)
 
-        frames = os.listdir(f"frames{self.suffix}/")
+        frames = os.listdir(str(frames_dir.resolve()))
         hydro_frames = []
         for new in frames:
             if "hydro" in new:
@@ -79,11 +91,12 @@ class JCalcMd:
         """
 
         logging.info("Calculating J values from MD")
+        frames_dir = self.frames_dir
         all_j_values = {}
         n_frames = 0
 
         for pdb in self.frames:
-            j_struct = JCalcPdb(pdb=f"frames{self.suffix}/{pdb}",
+            j_struct = JCalcPdb(pdb=f"{str(frames_dir.resolve())}/{pdb}",
                                 j_input=self.j_input
                                )
             j_struct.get_atoms_vector()
@@ -163,9 +176,10 @@ class JCalcMd:
         """
 
         for j in self.j_names:
-            out_file = os.getcwd() + f"/{j}_values.tsv"
-            logging.info(f"Writing J{j} values through MD, path: {out_file}")
-            with open(f"{j}_values.tsv","w") as j_file:
+            out_file = self.wkdir.joinpath(f"{j}_values.tsv")
+            logging.info(f"Writing J{j} values through MD, path: \
+{str(out_file.resolve())}")
+            with open(out_file,"w") as j_file:
                 for pdb in self.all_j_values:
                     j_value = self.all_j_values[pdb].j_values[j]
                     j_file.write(f"{pdb}\t{round(j_value,2)}\n")
@@ -186,9 +200,10 @@ class JCalcMd:
         """
 
         # Write statistics results
-        stats_file = os.getcwd() + f"/{stats_filename}"
-        logging.info(f"Writing J statistics resuls, path: {stats_file}")
-        self.write_statistics(out_name=stats_filename)
+        stats_file = self.wkdir.joinpath(f"{stats_filename}")
+        logging.info(f"Writing J statistics resuls, path: \
+{str(stats_file.resolve())}")
+        self.write_statistics(out_name=stats_file)
 
         # Write J values results through Molecular Dynamics
         self.write_j_values()

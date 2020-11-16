@@ -7,6 +7,7 @@ import statistics
 from Bio.PDB import *
 from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 import logging
+from pathlib import Path
 
 class JCalcPdb:
     """ Class to store vicinal coupling constant (3JH,H) for a given PDB
