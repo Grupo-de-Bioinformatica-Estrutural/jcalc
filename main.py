@@ -12,7 +12,13 @@ from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 from jcalc.jcalcpdb import JCalcPdb
 from jcalc.jcalcmd import JCalcMd
 import argparse
-
+import logging
+# Log configurations
+logging.basicConfig(filename="jcalc.log", filemode="w",
+                    format="%(asctime)s - %(message)s",
+                    datefmt='%m/%d/%Y %H:%M:%S',
+                    level=logging.INFO
+                   )
 
 
 if __name__ == "__main__":
@@ -56,14 +62,19 @@ hydrogen to implicit GROMOS simulations""",
 
     args = parser.parse_args()
 
-
+    logging.info("Starting JCalc")
+    logging.info(f"XTC chosen file: {args.xtc}")
+    logging.info(f"TPR chosen file: {args.tpr}")
+    logging.info(f"Chosen residue: {args.residue}")
+    logging.info(f"Skip chosen: {args.skip}")
+    logging.info(f"J input file: {args.j_input}")
     teste = JCalcMd(xtc=args.xtc,
                     tpr=args.tpr,
                     residue=args.residue,
                     suffix=args.suffix,
                     skip=args.skip,
                     j_input=args.j_input
-                   )
+                   )                     
     teste.create_frames()
     teste.add_hydrogen()
     teste.calc_md_j()
