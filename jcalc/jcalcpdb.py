@@ -8,6 +8,7 @@ from Bio.PDB import *
 from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 import logging
 from pathlib import Path
+import argparse
 
 class JCalcPdb:
     """ Class to store vicinal coupling constant (3JH,H) for a given PDB
@@ -18,6 +19,8 @@ class JCalcPdb:
     def __init__(self, pdb, j_input):
 
         parser = PDBParser()
+        self.wkdir = Path.cwd()
+        self.pdb = pdb.replace(".pdb","")
         self.struct = parser.get_structure(pdb, pdb)
         self.j_input = j_input
         self.parse_j_list()
@@ -204,3 +207,43 @@ class JCalcPdb:
             j_values[j] = self.calc_j_h_h(j)
 
         self.j_values = j_values
+
+    def write_pdb_results(self, out_file):
+        """ Description:
+
+            Usage:
+
+            Parameters:
+        """
+
+        out_file = self.wkdir.joinpath(f"{self.pdb}_J_values.tsv")
+        with open(out_file,"w") as j_file:
+            for j,j_value in self.j_values.items():
+                j_value = self.j_values[j]
+                j_file.write(f"{j}\t{round(j_value,2)}\n")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--p", "--pdb", "--pdb_filename", dest="pdb",
+                        help=""".pdb filename you want to calculate J values \
+(Needs to be in current directory)"""
+                       )
+
+    parser.add_argument("--r", "--res", "--residue_name", dest="residue",
+                        help="""Residue name you want to calculate J values \
+during molecular dynamics"""
+                       )
+
+    parser.add_argument("--j", "--j_input", dest="j_input", type=str,
+                        help="""J input filename to know which coupling \
+constants will be calculated. Read documentation for information on format"""
+                       )
+
+    args = parser.parse_args()
+
+    pdb_J = JCalcPdb(pdb=args.pdb, j_input=args.j_input)
+    pdb_J.get_atoms_vector()
+    pdb_J.create_j_dict()
+    pdb_J.calc_all_j()
+    pdb_J.write_pdb_results("teste.txt")
