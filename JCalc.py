@@ -74,7 +74,7 @@ hydrogen to implicit GROMOS simulations""",
                     suffix=args.suffix,
                     skip=args.skip,
                     j_input=args.j_input
-                   )                     
+                   )
     teste.create_frames()
     teste.add_hydrogen()
     teste.calc_md_j()
