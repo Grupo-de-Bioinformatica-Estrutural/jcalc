@@ -11,3 +11,7 @@
 
 ### Install by Docker
     docker pull jlmeirelles/jcalc:latest
+
+## Inputs
+
+## Outputs
