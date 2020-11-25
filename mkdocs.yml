@@ -1,16 +1,21 @@
 site_name: JCalc
 repo_url: 'https://github.com/Joaodemeirelles/jcalc'
-repo_name: 'GitHub'
+repo_name: 'jcalc/github'
 
 theme:
   name: 'material'
+  font:
+    code: 'Roboto'
   language: en
   include_sidebar: true
   palette:
+    scheme: default
     primary: 'black'
     accent: 'black'
   feature:
     tabs: false
+
+
 
 nav:
   - Getting Started: index.md
