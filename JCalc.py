@@ -91,8 +91,12 @@ hydrogen to implicit GROMOS simulations""", required=False
 
     # Else, static structure analysis is chosen
     else:
+        logging.info(f"Starting JCalc for PDB file {args.pdb}")
+        logging.info(f"J input file: {args.j_input}")
+        logging.info(f"Chosen residue: {args.residue}")
         pdb_J = JCalcPdb(pdb=args.pdb, j_input=args.j_input)
         pdb_J.get_atoms_vector()
         pdb_J.create_j_dict()
         pdb_J.calc_all_j()
         pdb_J.write_pdb_results("teste.txt")
+        logging.info("Ended JCalc analysis for PDB file")

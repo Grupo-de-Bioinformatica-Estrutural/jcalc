@@ -217,6 +217,7 @@ class JCalcPdb:
         """
 
         out_file = self.wkdir.joinpath(f"{self.pdb}_J_values.tsv")
+        logging.info(f"Output file path: {str(out_file.resolve())}")
         with open(out_file,"w") as j_file:
             for j,j_value in self.j_values.items():
                 j_value = self.j_values[j]
