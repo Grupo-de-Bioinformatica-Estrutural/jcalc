@@ -13,6 +13,7 @@ from jcalc.jcalcpdb import JCalcPdb
 from jcalc.jcalcmd import JCalcMd
 import argparse
 import logging
+from pathlib import Path
 # Log configurations
 logging.basicConfig(filename="jcalc.log", filemode="w",
                     format="%(asctime)s - %(message)s",
@@ -66,6 +67,11 @@ hydrogen to implicit GROMOS simulations""", required=False
 (Needs to be in current directory)""", required=False
                        )
 
+    parser.add_argument("--i", "--input", "--input_dir", dest="input_dir",
+                        help="""Input directory path with frames as .pdb files"""
+                        , required=False
+                       )
+
     args = parser.parse_args()
 
     # If args.xtc exists, MD analysis is chosen
@@ -85,6 +91,25 @@ hydrogen to implicit GROMOS simulations""", required=False
                        )
         teste.create_frames()
         teste.add_hydrogen()
+        teste.calc_md_j()
+        teste.calc_statistics()
+        teste.write_results("statistical_results.txt")
+
+    elif args.input_dir:
+        logging.info("Starting JCalc")
+        args.input_dir = Path(args.input_dir)
+        logging.info(f"Input directory file: {str(args.input_dir.resolve())}")
+        logging.info(f"Chosen residue: {args.residue}")
+        logging.info(f"J input file: {args.j_input}")
+        teste = JCalcMd(xtc="",
+                        tpr="",
+                        residue=args.residue,
+                        suffix=args.suffix,
+                        skip=1,
+                        j_input=args.j_input
+                       )
+        teste.frames_dir = args.input_dir
+        teste.frames = os.listdir(str(teste.frames_dir.resolve()))
         teste.calc_md_j()
         teste.calc_statistics()
         teste.write_results("statistical_results.txt")

@@ -16,6 +16,10 @@
     --t idose_sim.tpr --r HAID --suf 1 --skip 1000 --j j_input.txt \
     --ff add_hydrogen.ff
 
+### Calculate J values through Molecular Dynamics by frames as .PDB files
+    docker run -v $(pwd):/home/data jcalc:latest --i frames \
+    --r HAID --j j_input.txt 
+
 ### Calculate J values in structure (PDB format)
     docker run -v $(pwd):/home/data jcalc:latest --p struct_file.pdb \
     --j j_input.txt --r HAID
