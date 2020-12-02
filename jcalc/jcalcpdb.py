@@ -22,6 +22,7 @@ class JCalcPdb:
         self.wkdir = Path.cwd()
         self.pdb = pdb.replace(".pdb","")
         self.struct = parser.get_structure(pdb, pdb)
+        self.atom_list = Selection.unfold_entities(self.struct, 'A')
         self.j_input = j_input
         self.parse_j_list()
 
@@ -79,14 +80,10 @@ class JCalcPdb:
         subs_list = []
         #j_atoms = [j[0] for j in j_atoms]
         center = self.atom_dict[cx_atom][2]
-        print(center, "center")
-        atom_list = Selection.unfold_entities(self.struct, 'A')
-        ns = NeighborSearch(atom_list)
-        print(atom_list)
-        print(ns)
+        ns = NeighborSearch(self.atom_list)
         neighbors = ns.search(center, 1.7)
         for neigh_atom in neighbors:
-            if neigh_atom not in j_atoms:
+            if neigh_atom.serial_number not in j_atoms:
                 subs_list.append(neigh_atom)
 
         for subs in subs_list:
