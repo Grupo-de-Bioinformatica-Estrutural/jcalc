@@ -22,6 +22,7 @@ class JCalcPdb:
         self.wkdir = Path.cwd()
         self.pdb = pdb.replace(".pdb","")
         self.struct = parser.get_structure(pdb, pdb)
+        self.atom_list = Selection.unfold_entities(self.struct, 'A')
         self.j_input = j_input
         self.parse_j_list()
 
@@ -43,7 +44,7 @@ class JCalcPdb:
             for line in file:
                 line = line.split("\t")
                 line[-1] = line[-1].replace("\n","")
-                j_list.append(line)
+                j_list.append(list(map(int,line)))
                 n_j += 1
 
         self.n_j = n_j
@@ -63,8 +64,36 @@ class JCalcPdb:
         # Pegar so o residuo que quero como struct
         for residue in structure.get_residues():
             for atom in residue:
-                atom_dict[atom.get_id()] = [atom.get_vector(), atom.element]
+                atom_dict[atom.serial_number] = \
+                [atom.get_vector(), atom.element, atom.get_coord()]
+
         self.atom_dict = atom_dict
+
+    def search_subs(self, hx_atom, cx_atom, cy_atom, hy_atom, j_atoms, chosen_j):
+        """ Description:
+
+            Usage:
+
+            Parameters:
+        """
+
+        subs_list = []
+        #j_atoms = [j[0] for j in j_atoms]
+        center = self.atom_dict[cx_atom][2]
+        ns = NeighborSearch(self.atom_list)
+        neighbors = ns.search(center, 1.7)
+        for neigh_atom in neighbors:
+            if neigh_atom.serial_number not in j_atoms:
+                subs_list.append(neigh_atom)
+
+        for subs in subs_list:
+            self.j_dict[chosen_j]["substituents"][subs.serial_number] = \
+            {"SY": self.atom_dict[subs.serial_number][0],
+             "HX": self.atom_dict[hx_atom][0],
+             "CX": self.atom_dict[cx_atom][0],
+             "CY": self.atom_dict[cy_atom][0],
+             "element": self.atom_dict[subs.serial_number][1]
+            }
 
     def create_j_dict(self):
         """ Description:
@@ -91,36 +120,24 @@ class JCalcPdb:
                                                    )
             j_dict[chosen_j]["dih"] = math.degrees(j_dict[chosen_j]["dih"])
             j_dict[chosen_j]["substituents"] = {}
-            j_dict[chosen_j]["substituents"][j[4]] = \
-            {"SY": self.atom_dict[j[4]][0],
-             "HX": self.atom_dict[j[3]][0],
-             "CX": self.atom_dict[j[2]][0],
-             "CY": self.atom_dict[j[1]][0],
-             "element": self.atom_dict[j[4]][1]
-            }
-            j_dict[chosen_j]["substituents"][j[5]] = \
-            {"SY": self.atom_dict[j[5]][0],
-             "HX": self.atom_dict[j[3]][0],
-             "CX": self.atom_dict[j[2]][0],
-             "CY": self.atom_dict[j[1]][0],
-             "element": self.atom_dict[j[5]][1]
-            }
-            j_dict[chosen_j]["substituents"][j[6]] = \
-            {"SY": self.atom_dict[j[6]][0],
-             "HX": self.atom_dict[j[0]][0],
-             "CX": self.atom_dict[j[1]][0],
-             "CY": self.atom_dict[j[2]][0],
-             "element": self.atom_dict[j[6]][1]
-            }
-            j_dict[chosen_j]["substituents"][j[7]] = \
-            {"SY": self.atom_dict[j[7]][0],
-             "HX": self.atom_dict[j[0]][0],
-             "CX": self.atom_dict[j[1]][0],
-             "CY": self.atom_dict[j[2]][0],
-             "element": self.atom_dict[j[7]][1]
-            }
+            self.j_dict = j_dict
 
-        self.j_dict = j_dict
+            # Search subs for CX and create subs dict
+            self.search_subs(hx_atom=j[0],
+                             cx_atom=j[1],
+                             cy_atom=j[2],
+                             hy_atom=j[3],
+                             j_atoms=j,
+                             chosen_j=chosen_j
+                            )
+            # Search subs for CY and create subs dict
+            self.search_subs(hx_atom=j[3],
+                             cx_atom=j[2],
+                             cy_atom=j[1],
+                             hy_atom=j[0],
+                             j_atoms=j,
+                             chosen_j=chosen_j
+                            )
 
     def calc_subs_coupling(self, HX, CX, CY, SY, dihedral, element):
         """ Description:
