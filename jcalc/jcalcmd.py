@@ -163,8 +163,8 @@ please rename it or remove it")
 
         with open(out_name, "w") as out:
             for j,mean_value in self.mean_results.items():
-                out.write(f"{j}_mean:\t{mean_value}\n")
-                out.write(f"{j}_stdev:\t{self.stdev_results[j]}\n")
+                out.write(f"{j}_mean:\t{round(mean_value,2)}\n")
+                out.write(f"{j}_stdev:\t{round(self.stdev_results[j],2)}\n")
 
     def write_j_values(self):
         """ Description:
