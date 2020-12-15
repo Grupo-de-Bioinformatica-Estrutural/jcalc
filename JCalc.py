@@ -24,50 +24,45 @@ logging.basicConfig(filename="jcalc.log", filemode="w",
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--x", "--xtc", "--xtc_filename", dest="xtc",
+    parser.add_argument("-x", "-xtc", "-xtc_filename", dest="xtc",
                         help=""".xtc filename from molecular dynamics you \
 want to analyze (Needs to be in current directory)""", required=False
                        )
 
-    parser.add_argument("--t", "--tpr", "--tpr_filename", dest="tpr",
+    parser.add_argument("-t", "-tpr", "-tpr_filename", dest="tpr",
                         help=""".tpr filename from molecular dynamics you \
 want to analyze (Needs to be in current directory)""", required=False
                        )
 
-    parser.add_argument("--r", "--res", "--residue_name", dest="residue",
-                        help="""Residue name you want to calculate vicinal \
-coupling constant (3JH,H) during molecular dynamics""", required=False
-                       )
-
-    parser.add_argument("--suf", "--suffix", dest="suffix",
+    parser.add_argument("-suf", "-suffix", dest="suffix",
                         help="""Suffix of analysis, used when running multiple \
 3JH,H calculations in same directory""", required=False
                        )
 
-    parser.add_argument("--skip", dest="skip", type=int,
+    parser.add_argument("-skip", dest="skip", type=int,
                         help="""Number of frames you want to skip when calcu\
 lating 3JH,H values thorugh molecular dynamics""", required=False,
                         default=100
                    )
 
-    parser.add_argument("--j", "--j_input", dest="j_input", type=str,
+    parser.add_argument("-n", "-ndx", dest="j_input", type=str,
                         help="""J input filename to know which coupling \
 constants will be calculated. Read documentation for information on format""",
                         required=False
                        )
 
-    parser.add_argument("--ff", "--ff_hydro", dest="ff_hydro", type=str,
-                        help=""".ff dir with hydrogen information when adding \
-hydrogen to implicit GROMOS simulations""", required=False
+    parser.add_argument("-hydro", action='store_true',
+                        help="""Adding implicit hydrogen to \
+GROMOS simulations""", required=False
                        )
 
 
-    parser.add_argument("--p", "--pdb", "--pdb_filename", dest="pdb",
+    parser.add_argument("-p", "-pdb", "-pdb_filename", dest="pdb",
                         help=""".pdb filename you want to calculate J values \
 (Needs to be in current directory)""", required=False
                        )
 
-    parser.add_argument("--i", "--input", "--input_dir", dest="input_dir",
+    parser.add_argument("-i", "-input", "-input_dir", dest="input_dir",
                         help="""Input directory path with frames as .pdb files"""
                         , required=False
                        )
@@ -79,18 +74,17 @@ hydrogen to implicit GROMOS simulations""", required=False
         logging.info("Starting JCalc")
         logging.info(f"XTC chosen file: {args.xtc}")
         logging.info(f"TPR chosen file: {args.tpr}")
-        logging.info(f"Chosen residue: {args.residue}")
         logging.info(f"Skip chosen: {args.skip}")
         logging.info(f"J input file: {args.j_input}")
         teste = JCalcMd(xtc=args.xtc,
                         tpr=args.tpr,
-                        residue=args.residue,
                         suffix=args.suffix,
                         skip=args.skip,
                         j_input=args.j_input
                        )
         teste.create_frames()
-        teste.add_hydrogen()
+        if args.hydro:
+            teste.add_hydrogen()
         teste.calc_md_j()
         teste.calc_statistics()
         teste.write_results("statistical_results.txt")
@@ -110,6 +104,9 @@ hydrogen to implicit GROMOS simulations""", required=False
                        )
         teste.frames_dir = args.input_dir
         teste.frames = os.listdir(str(teste.frames_dir.resolve()))
+        teste.frames = sorted(teste.frames,
+                              key=lambda x: int(x.split("_")[1].split(".")[0])
+                             )
         teste.calc_md_j()
         teste.calc_statistics()
         teste.write_results("statistical_results.txt")

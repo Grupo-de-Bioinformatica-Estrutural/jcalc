@@ -14,12 +14,11 @@ class JCalcMd:
     """
     """
 
-    def __init__(self, xtc, tpr, residue, suffix, skip, j_input):
+    def __init__(self, xtc, tpr, suffix, skip, j_input):
 
         self.wkdir = Path.cwd()
         self.xtc = xtc
         self.tpr = tpr
-        self.residue = residue
         self.suffix = suffix
         self.skip = skip
         self.j_input = self.wkdir.joinpath(j_input)
@@ -41,7 +40,7 @@ please rename it or remove it")
         else:
             frames_dir.mkdir()
 
-        subprocess.call(f"echo 2 2 | {GROMACS_VERSION} trjconv -s {self.tpr} \
+        subprocess.call(f"{GROMACS_VERSION} trjconv -s {self.tpr} \
                           -f {self.xtc} -sep -skip {self.skip} \
                           -o {str(frames_dir.resolve())}/frame_.pdb -pbc mol \
                           -center",
@@ -52,6 +51,57 @@ please rename it or remove it")
                         key=lambda x: int(x.split("_")[1].split(".")[0])
                        )
         self.frames = frames
+
+    def rename_hydro(self, pdb):
+        """ Description:
+              Given an PDB file, rename all added hydrogen by obabel so
+              BioPDBParser can accept its format
+
+            Usage:
+              JCalcMd.rename_hydro()
+
+            Parameters:
+              pdb:
+                string, pdb filename
+        """
+
+        old_h = []
+        new_file_lines = []
+        with open(pdb,"r") as file:
+            for line in file:
+                cur_line = line.split()
+                try:
+                    if "H" in cur_line[2] and \
+                    (cur_line[0] == "ATOM" or cur_line[0] == "HETATM"):
+                        if cur_line[2] != "H" and cur_line[2] not in old_h:
+                            old_h.append(cur_line[2])
+
+                    new_file_lines.append(line)
+                except:
+                    new_file_lines.append(line)
+                    continue
+
+        # Now, we have all hidrogens names, and we can add new ones without
+        # messing with original hydrogens
+        counter = 1
+        with open(pdb,"w") as file:
+            for line in new_file_lines:
+                cur_line = line.split()
+                try:
+                    if cur_line[2] == "H" and \
+                    (cur_line[0] == "ATOM" or cur_line[0] == "HETATM"):
+                        h_name = f"H{counter}"
+                        while h_name in old_h:
+                            counter += 1
+                            h_name = f"H{counter}"
+                        line = line[:12] + f"{h_name:^4s}" + f" {line[17:]}"
+                        old_h.append(h_name)
+                        file.write(line)
+                    else:
+                        file.write(line)
+                except:
+                    file.write(line)
+
 
     def add_hydrogen(self):
         """ Description:
@@ -65,24 +115,10 @@ please rename it or remove it")
         frames_dir = self.frames_dir
         logging.info("Adding hydrogen to frames (GROMOS non-polar hydrogen)")
         for pdb in self.frames:
-            subprocess.call(f"echo 3 | {GROMACS_VERSION} pdb2gmx -quiet \
-                             -f {str(frames_dir.resolve())}/{pdb} \
-                             -o {str(frames_dir.resolve())}/{pdb}_hydro.pdb \
-                             -ff add_hydrogen", shell=True
-                           )
-            subprocess.call(f"rm *.top", shell=True)
-            subprocess.call(f"rm *.itp", shell=True)
-
-        frames = os.listdir(str(frames_dir.resolve()))
-        hydro_frames = []
-        for new in frames:
-            if "hydro" in new:
-                hydro_frames.append(new)
-
-        frames = sorted(hydro_frames,
-                        key=lambda x: int(x.split("_")[1].split(".")[0])
-                       )
-        self.frames = frames
+            cmd_add = f"obabel -ipdb {str(frames_dir.resolve())}/{pdb} \
+-opdb -O {str(frames_dir.resolve())}/{pdb} -h"
+            subprocess.call(cmd_add, shell=True)
+            self.rename_hydro(f"{str(frames_dir.resolve())}/{pdb}")
 
     def calc_md_j(self):
         """ Description:
@@ -177,7 +213,7 @@ please rename it or remove it")
 
         for j in self.j_names:
             out_file = self.wkdir.joinpath(f"{j}_values.tsv")
-            logging.info(f"Writing J{j} values through MD, path: \
+            logging.info(f"Writing J {j} values through MD, path: \
 {str(out_file.resolve())}")
             with open(out_file,"w") as j_file:
                 for pdb in self.all_j_values:
