@@ -11,7 +11,7 @@ from Bio.PDB import (
 
 
 # Base imports
-from settings import HUGGINS_ELECTRO
+from jcalc.settings import HUGGINS_ELECTRO
 
 
 class JCalcPdb:

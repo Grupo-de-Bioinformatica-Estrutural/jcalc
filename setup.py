@@ -15,10 +15,8 @@ setup(
     licence="Academic",
     packages=[
         "jcalc",
-        "jcalc.tools",
-        "db_generator.db_stats",
-        "db_generator.db_writer",
-        "db_generator.logger",
+        "jcalc.core",
+        "jcalc.logger",
     ],
     scripts=["jcalc/jcalc"],
     zip_safe=False

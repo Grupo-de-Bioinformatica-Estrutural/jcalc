@@ -8,9 +8,9 @@ import argparse
 from pathlib import Path
 
 # Base imports
-from core.pdb import JCalcPdb
-from core.md import JCalcMd
-from logger.logger import log_config
+from jcalc.core.pdb import JCalcPdb
+from jcalc.core.md import JCalcMd
+from jcalc.logger.logger import log_config
 
 
 # Log configurations

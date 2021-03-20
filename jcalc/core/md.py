@@ -8,8 +8,8 @@ import multiprocessing
 
 
 # Base imports
-from core.pdb import JCalcPdb
-from settings import GROMACS_VERSION
+from jcalc.core.pdb import JCalcPdb
+from jcalc.settings import GROMACS_VERSION
 
 
 class JCalcMd:
