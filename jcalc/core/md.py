@@ -4,6 +4,7 @@ import subprocess
 import statistics
 import logging
 from pathlib import Path
+import multiprocessing
 
 
 # Base imports
@@ -113,14 +114,28 @@ please rename it or remove it")
             Usage:
               JCalcMd.add_hydrogen()
         """
-
-        frames_dir = self.frames_dir
+        jobs = []
         logging.info("Adding hydrogen to frames (GROMOS non-polar hydrogen)")
         for pdb in self.frames:
-            cmd_add = f"obabel -ipdb {str(frames_dir.resolve())}/{pdb} \
+            process = multiprocessing.Process(
+                target=self.cmd_addhydro,
+                args=(pdb,)
+                )
+            jobs.append(process)
+            process.start()
+        for j in jobs:
+            j.join()
+
+    def cmd_addhydro(self, pdb):
+        """ Description:
+
+            Usage:
+        """
+        frames_dir = self.frames_dir
+        cmd_add = f"obabel -ipdb {str(frames_dir.resolve())}/{pdb} \
 -opdb -O {str(frames_dir.resolve())}/{pdb} -h"
-            subprocess.call(cmd_add, shell=True)
-            self.rename_hydro(f"{str(frames_dir.resolve())}/{pdb}")
+        subprocess.call(cmd_add, shell=True)
+        self.rename_hydro(f"{str(frames_dir.resolve())}/{pdb}")
 
     def calc_md_j(self):
         """ Description:

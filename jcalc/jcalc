@@ -85,11 +85,9 @@ if __name__ == "__main__":
         logging.info("Starting JCalc")
         args.input_dir = Path(args.input_dir)
         logging.info(f"Input directory file: {str(args.input_dir.resolve())}")
-        logging.info(f"Chosen residue: {args.residue}")
         logging.info(f"J input file: {args.j_input}")
         teste = JCalcMd(xtc="",
                         tpr="",
-                        residue=args.residue,
                         suffix=args.suffix,
                         skip=1,
                         j_input=args.j_input
@@ -107,7 +105,6 @@ if __name__ == "__main__":
     else:
         logging.info(f"Starting JCalc for PDB file {args.pdb}")
         logging.info(f"J input file: {args.j_input}")
-        logging.info(f"Chosen residue: {args.residue}")
         pdb_J = JCalcPdb(pdb=args.pdb, j_input=args.j_input)
         pdb_J.get_atoms_vector()
         pdb_J.create_j_dict()
