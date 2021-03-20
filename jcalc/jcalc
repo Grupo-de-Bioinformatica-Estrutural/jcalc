@@ -1,71 +1,63 @@
 #!/usr/bin/env python3
 __author__ = "Joao Luiz de Meirelles"
 
+# Third Party imports
 import os
-import numpy as np
-import sys
-import math
-import subprocess
-import statistics
-from Bio.PDB import *
-from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
-from jcalc.jcalcpdb import JCalcPdb
-from jcalc.jcalcmd import JCalcMd
-import argparse
 import logging
+import argparse
 from pathlib import Path
+
+# Base imports
+from core.pdb import JCalcPdb
+from core.md import JCalcMd
+from logger.logger import log_config
+
+
 # Log configurations
-logging.basicConfig(filename="jcalc.log", filemode="w",
-                    format="%(asctime)s - %(message)s",
-                    datefmt='%m/%d/%Y %H:%M:%S',
-                    level=logging.INFO
-                   )
+log_config(log_file="jcalc.log")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-x", "-xtc", "-xtc_filename", dest="xtc",
                         help=""".xtc filename from molecular dynamics you \
-want to analyze (Needs to be in current directory)""", required=False
-                       )
+                            want to analyze (Needs to be
+                            in current directory)""", required=False)
 
     parser.add_argument("-t", "-tpr", "-tpr_filename", dest="tpr",
                         help=""".tpr filename from molecular dynamics you \
-want to analyze (Needs to be in current directory)""", required=False
-                       )
+                            want to analyze (Needs to be
+                            in current directory)""", required=False)
 
     parser.add_argument("-suf", "-suffix", dest="suffix",
                         help="""Suffix of analysis, used when running multiple \
-3JH,H calculations in same directory""", required=False
-                       )
+                            3JH,H calculations in same directory""",
+                        required=False)
 
     parser.add_argument("-skip", dest="skip", type=int,
                         help="""Number of frames you want to skip when calcu\
-lating 3JH,H values thorugh molecular dynamics""", required=False,
-                        default=100
-                   )
+                            lating 3JH,H values thorugh molecular dynamics""",
+                        required=False, default=100)
 
     parser.add_argument("-n", "-ndx", dest="j_input", type=str,
                         help="""J input filename to know which coupling \
-constants will be calculated. Read documentation for information on format""",
-                        required=False
-                       )
+                            constants will be calculated. Read documentation
+                            for information on format""",
+                        required=False)
 
     parser.add_argument("-hydro", action='store_true',
                         help="""Adding implicit hydrogen to \
-GROMOS simulations""", required=False
-                       )
-
+                            GROMOS simulations""",
+                        required=False)
 
     parser.add_argument("-p", "-pdb", "-pdb_filename", dest="pdb",
                         help=""".pdb filename you want to calculate J values \
-(Needs to be in current directory)""", required=False
-                       )
+                            (Needs to be in current directory)""",
+                        required=False)
 
     parser.add_argument("-i", "-input", "-input_dir", dest="input_dir",
-                        help="""Input directory path with frames as .pdb files"""
-                        , required=False
-                       )
+                        help="""Input directory path with frames as .pdb
+                            files""", required=False)
 
     args = parser.parse_args()
 
@@ -81,7 +73,7 @@ GROMOS simulations""", required=False
                         suffix=args.suffix,
                         skip=args.skip,
                         j_input=args.j_input
-                       )
+                        )
         teste.create_frames()
         if args.hydro:
             teste.add_hydrogen()
@@ -101,12 +93,12 @@ GROMOS simulations""", required=False
                         suffix=args.suffix,
                         skip=1,
                         j_input=args.j_input
-                       )
+                        )
         teste.frames_dir = args.input_dir
         teste.frames = os.listdir(str(teste.frames_dir.resolve()))
         teste.frames = sorted(teste.frames,
                               key=lambda x: int(x.split("_")[1].split(".")[0])
-                             )
+                              )
         teste.calc_md_j()
         teste.calc_statistics()
         teste.write_results("statistical_results.txt")

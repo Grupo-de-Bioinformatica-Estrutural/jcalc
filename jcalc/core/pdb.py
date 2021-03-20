@@ -1,14 +1,18 @@
-import os
-import numpy as np
-import sys
+# Third Party imports
 import math
-import subprocess
-import statistics
-from Bio.PDB import *
-from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 import logging
 from pathlib import Path
-import argparse
+from Bio.PDB import (
+    PDBParser,
+    Selection,
+    NeighborSearch,
+    calc_dihedral
+)
+
+
+# Base imports
+from settings import HUGGINS_ELECTRO
+
 
 class JCalcPdb:
     """ Class to store vicinal coupling constant (3JH,H) for a given PDB
@@ -20,7 +24,7 @@ class JCalcPdb:
 
         parser = PDBParser()
         self.wkdir = Path.cwd()
-        self.pdb = pdb.replace(".pdb","")
+        self.pdb = pdb.replace(".pdb", "")
         self.struct = parser.get_structure(pdb, pdb)
         self.atom_list = Selection.unfold_entities(self.struct, 'A')
         self.j_input = j_input
@@ -43,8 +47,8 @@ class JCalcPdb:
         with open(self.j_input, "r") as file:
             for line in file:
                 line = line.split("\t")
-                line[-1] = line[-1].replace("\n","")
-                j_list.append(list(map(int,line)))
+                line[-1] = line[-1].replace("\n", "")
+                j_list.append(list(map(int, line)))
                 n_j += 1
 
         self.n_j = n_j
@@ -65,11 +69,19 @@ class JCalcPdb:
         for residue in structure.get_residues():
             for atom in residue:
                 atom_dict[atom.serial_number] = \
-                [atom.get_vector(), atom.element, atom.get_coord()]
+                 [atom.get_vector(), atom.element, atom.get_coord()]
 
         self.atom_dict = atom_dict
 
-    def search_subs(self, hx_atom, cx_atom, cy_atom, hy_atom, j_atoms, chosen_j):
+    def search_subs(
+        self,
+        hx_atom,
+        cx_atom,
+        cy_atom,
+        hy_atom,
+        j_atoms,
+        chosen_j
+    ):
         """ Description:
 
             Usage:
@@ -87,12 +99,12 @@ class JCalcPdb:
                 subs_list.append(neigh_atom)
 
         for subs in subs_list:
-            self.j_dict[chosen_j]["substituents"][subs.serial_number] = \
-            {"SY": self.atom_dict[subs.serial_number][0],
-             "HX": self.atom_dict[hx_atom][0],
-             "CX": self.atom_dict[cx_atom][0],
-             "CY": self.atom_dict[cy_atom][0],
-             "element": self.atom_dict[subs.serial_number][1]
+            self.j_dict[chosen_j]["substituents"][subs.serial_number] = {
+                "SY": self.atom_dict[subs.serial_number][0],
+                "HX": self.atom_dict[hx_atom][0],
+                "CX": self.atom_dict[cx_atom][0],
+                "CY": self.atom_dict[cy_atom][0],
+                "element": self.atom_dict[subs.serial_number][1]
             }
 
     def create_j_dict(self):
@@ -117,7 +129,7 @@ class JCalcPdb:
                                                     self.atom_dict[j[1]][0],
                                                     self.atom_dict[j[2]][0],
                                                     self.atom_dict[j[3]][0]
-                                                   )
+                                                    )
             j_dict[chosen_j]["dih"] = math.degrees(j_dict[chosen_j]["dih"])
             j_dict[chosen_j]["substituents"] = {}
             self.j_dict = j_dict
@@ -129,7 +141,7 @@ class JCalcPdb:
                              hy_atom=j[3],
                              j_atoms=j,
                              chosen_j=chosen_j
-                            )
+                             )
             # Search subs for CY and create subs dict
             self.search_subs(hx_atom=j[3],
                              cx_atom=j[2],
@@ -137,12 +149,12 @@ class JCalcPdb:
                              hy_atom=j[0],
                              j_atoms=j,
                              chosen_j=chosen_j
-                            )
+                             )
 
     def calc_subs_coupling(self, HX, CX, CY, SY, dihedral, element):
         """ Description:
-              Given an JCalcPdb struct and atom vectors, calculate J pertubation
-              from substitute atoms
+              Given an JCalcPdb struct and atom vectors, calculate
+              J pertubation from substitute atoms
 
             Usage:
               JcalcPdb.calc_subs_coupling(vector_HX, vector_CX, vector_CY,
@@ -166,19 +178,17 @@ class JCalcPdb:
         """
 
         huggins_constant = HUGGINS_ELECTRO[element]
-        subs_dih = calc_dihedral(HX,CX,CY,SY)
+        subs_dih = calc_dihedral(HX, CX, CY, SY)
 
         if subs_dih >= 0:
             return huggins_constant * \
-            (0.56  + (-2.32 * \
-            (math.cos(math.radians((dihedral * -1) + \
-            (17.9 * huggins_constant))) ** 2)))
+                (0.56 + (-2.32 * (math.cos(math.radians((dihedral * -1) +
+                 (17.9 * huggins_constant))) ** 2)))
 
         else:
             return huggins_constant * \
-            (0.56  + (-2.32 * \
-            (math.cos(math.radians(dihedral + \
-            (17.9 * huggins_constant))) ** 2)))
+                (0.56 + (-2.32 * (math.cos(math.radians(dihedral +
+                 (17.9 * huggins_constant))) ** 2)))
 
     def calc_j_h_h(self, chosen_j):
         """ Description:
@@ -196,14 +206,15 @@ class JCalcPdb:
 
         subs_value = 0
         for subs in self.j_dict[chosen_j]["substituents"].values():
-            subs_value += self.calc_subs_coupling(HX=subs["HX"],
-                                                  CX=subs["CX"],
-                                                  CY=subs["CY"],
-                                                  SY=subs["SY"],
-                                                  dihedral=\
-                                                  self.j_dict[chosen_j]["dih"],
-                                                  element=subs["element"]
-                                                 )
+            subs_value += \
+                self.calc_subs_coupling(
+                    HX=subs["HX"],
+                    CX=subs["CX"],
+                    CY=subs["CY"],
+                    SY=subs["SY"],
+                    dihedral=self.j_dict[chosen_j]["dih"],
+                    element=subs["element"]
+                    )
 
         dih_radians = math.radians(self.j_dict[chosen_j]["dih"])
         j_value = (13.86 * (math.cos(dih_radians)) ** 2) + \
@@ -235,7 +246,7 @@ class JCalcPdb:
 
         out_file = self.wkdir.joinpath(f"{self.pdb}_J_values.tsv")
         logging.info(f"Output file path: {str(out_file.resolve())}")
-        with open(out_file,"w") as j_file:
-            for j,j_value in self.j_values.items():
+        with open(out_file, "w") as j_file:
+            for j, j_value in self.j_values.items():
                 j_value = self.j_values[j]
                 j_file.write(f"{j}\t{round(j_value,2)}\n")

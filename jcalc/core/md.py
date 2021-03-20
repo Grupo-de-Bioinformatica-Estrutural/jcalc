@@ -1,14 +1,15 @@
+# Third Party imports
 import os
-import numpy as np
-import sys
-import math
 import subprocess
 import statistics
-from Bio.PDB import *
-from jcalc.jcalcpdb import JCalcPdb
-from tools.settings import HUGGINS_ELECTRO,GROMACS_VERSION
 import logging
 from pathlib import Path
+
+
+# Base imports
+from core.pdb import JCalcPdb
+from settings import GROMACS_VERSION
+
 
 class JCalcMd:
     """
@@ -44,12 +45,12 @@ please rename it or remove it")
                           -f {self.xtc} -sep -skip {self.skip} \
                           -o {str(frames_dir.resolve())}/frame_.pdb -pbc mol \
                           -center",
-                          shell=True
-                       )
+                        shell=True
+                        )
         frames = os.listdir(str(frames_dir.resolve()))
         frames = sorted(frames,
                         key=lambda x: int(x.split("_")[1].split(".")[0])
-                       )
+                        )
         self.frames = frames
 
     def rename_hydro(self, pdb):
@@ -67,29 +68,30 @@ please rename it or remove it")
 
         old_h = []
         new_file_lines = []
-        with open(pdb,"r") as file:
+        with open(pdb, "r") as file:
             for line in file:
                 cur_line = line.split()
                 try:
                     if "H" in cur_line[2] and \
-                    (cur_line[0] == "ATOM" or cur_line[0] == "HETATM"):
+                     (cur_line[0] == "ATOM" or cur_line[0] == "HETATM"):
                         if cur_line[2] != "H" and cur_line[2] not in old_h:
                             old_h.append(cur_line[2])
 
                     new_file_lines.append(line)
-                except:
+                except Exception as error:
                     new_file_lines.append(line)
+                    logging.warning(f"Error {error} at renaming hydrogen")
                     continue
 
         # Now, we have all hidrogens names, and we can add new ones without
         # messing with original hydrogens
         counter = 1
-        with open(pdb,"w") as file:
+        with open(pdb, "w") as file:
             for line in new_file_lines:
                 cur_line = line.split()
                 try:
                     if cur_line[2] == "H" and \
-                    (cur_line[0] == "ATOM" or cur_line[0] == "HETATM"):
+                     (cur_line[0] == "ATOM" or cur_line[0] == "HETATM"):
                         h_name = f"H{counter}"
                         while h_name in old_h:
                             counter += 1
@@ -99,9 +101,9 @@ please rename it or remove it")
                         file.write(line)
                     else:
                         file.write(line)
-                except:
+                except Exception as error:
+                    logging.warning(f"Error {error} at renaming hydrogen")
                     file.write(line)
-
 
     def add_hydrogen(self):
         """ Description:
@@ -134,7 +136,7 @@ please rename it or remove it")
         for pdb in self.frames:
             j_struct = JCalcPdb(pdb=f"{str(frames_dir.resolve())}/{pdb}",
                                 j_input=self.j_input
-                               )
+                                )
             j_struct.get_atoms_vector()
             j_struct.create_j_dict()
             j_struct.calc_all_j()
@@ -167,7 +169,7 @@ please rename it or remove it")
             statistics_dict[j] = []
 
         for pdb in self.all_j_values:
-            for j_name,j_value in self.all_j_values[pdb].j_values.items():
+            for j_name, j_value in self.all_j_values[pdb].j_values.items():
                 statistics_dict[j_name].append(j_value)
 
         # Now, calc statistics
@@ -198,7 +200,7 @@ please rename it or remove it")
         """
 
         with open(out_name, "w") as out:
-            for j,mean_value in self.mean_results.items():
+            for j, mean_value in self.mean_results.items():
                 out.write(f"{j}_mean:\t{round(mean_value,2)}\n")
                 out.write(f"{j}_stdev:\t{round(self.stdev_results[j],2)}\n")
 
@@ -215,7 +217,7 @@ please rename it or remove it")
             out_file = self.wkdir.joinpath(f"{j}_values.tsv")
             logging.info(f"Writing J {j} values through MD, path: \
 {str(out_file.resolve())}")
-            with open(out_file,"w") as j_file:
+            with open(out_file, "w") as j_file:
                 for pdb in self.all_j_values:
                     j_value = self.all_j_values[pdb].j_values[j]
                     j_file.write(f"{pdb}\t{round(j_value,2)}\n")
