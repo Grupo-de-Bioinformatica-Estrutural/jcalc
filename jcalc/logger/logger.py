@@ -1,5 +1,6 @@
 import logging
 
+
 def log_config(log_file):
     """ Description:
           Function to start log, writing inside LOGS
