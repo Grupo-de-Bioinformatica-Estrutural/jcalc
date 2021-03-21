@@ -42,7 +42,8 @@ please rename it or remove it")
         else:
             frames_dir.mkdir()
 
-        subprocess.call(f"{GROMACS_VERSION} trjconv -s {self.tpr} \
+        subprocess.call(f"echo non-Water non-Water non-Water | \
+                          {GROMACS_VERSION} trjconv -s {self.tpr} \
                           -f {self.xtc} -sep -skip {self.skip} \
                           -o {str(frames_dir.resolve())}/frame_.pdb -pbc mol \
                           -center",
@@ -132,10 +133,11 @@ please rename it or remove it")
             Usage:
         """
         frames_dir = self.frames_dir
-        cmd_add = f"obabel -ipdb {str(frames_dir.resolve())}/{pdb} \
--opdb -O {str(frames_dir.resolve())}/{pdb} -h"
+        pdb_file = f"{str(frames_dir.resolve())}/{pdb}"
+        cmd_add = f"obabel -ipdb {pdb_file} \
+-opdb -O {pdb_file} -h"
         subprocess.call(cmd_add, shell=True)
-        self.rename_hydro(f"{str(frames_dir.resolve())}/{pdb}")
+        self.rename_hydro(f"{pdb_file}")
 
     def calc_md_j(self):
         """ Description:
