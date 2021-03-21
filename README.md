@@ -5,6 +5,7 @@ Python module to calculate vicinal coupling constant from Molecular Dynamics
 
 ### Installing jcalc
 * [Install GROMACS](http://www.gromacs.org/)
+* [Install obabel](https://github.com/openbabel/openbabel)
 
 ### Install locally
 ```bash
