@@ -31,5 +31,6 @@ COPY . /home/jcalc
 RUN cd /home/jcalc && ./easy_install.py
 
 # Turn scripts into executables
+WORKDIR /home/data
 ENTRYPOINT ["jcalc"]
 CMD ["-h"]
