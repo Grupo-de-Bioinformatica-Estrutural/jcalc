@@ -1,3 +1,4 @@
+[![PyPI version](https://badge.fury.io/py/jcalc.svg)](https://badge.fury.io/py/jcalc)
 [![Build Status](https://travis-ci.com/Joaodemeirelles/jcalc.svg?branch=main)](https://travis-ci.com/Joaodemeirelles/jcalc)
 # jcalc
 Python module to calculate vicinal coupling constant from Molecular Dynamics
