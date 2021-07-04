@@ -19,5 +19,13 @@ setup(
         "jcalc.logger",
     ],
     scripts=["jcalc/jcalc"],
+    install_requires=[
+        "numpy==1.19.4",
+        "statistics==1.0.3.5",
+        "biopython==1.78",
+        "argparse==1.4.0",
+        "pathlib==1.0.1",
+        "flake8==3.9.0"
+    ],
     zip_safe=False
 )
