@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/Joaodemeirelles/jcalc.svg?branch=main)](https://travis-ci.com/Joaodemeirelles/jcalc)
 # jcalc
 Python module to calculate vicinal coupling constant from Molecular Dynamics
 
