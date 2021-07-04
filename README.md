@@ -9,7 +9,8 @@ Python module to calculate vicinal coupling constant from Molecular Dynamics
 
 ### Install locally
 ```bash
-./easy_install.py
+pip install jcalc
+pip install -r requirements.txt
 ```
 
 ### Install by docker
