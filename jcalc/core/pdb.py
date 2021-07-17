@@ -44,7 +44,7 @@ class JCalcPdb:
 
         j_list = []
         n_j = 0
-        with open(self.j_input, "r") as file:
+        with open(str(self.j_input), "r") as file:
             for line in file:
                 line = line.split("\t")
                 line[-1] = line[-1].replace("\n", "")
@@ -236,7 +236,7 @@ class JCalcPdb:
 
         self.j_values = j_values
 
-    def write_pdb_results(self, out_file):
+    def write_pdb_results(self):
         """ Description:
 
             Usage:
@@ -245,8 +245,8 @@ class JCalcPdb:
         """
 
         out_file = self.wkdir.joinpath(f"{self.pdb}_J_values.tsv")
-        logging.info(f"Output file path: {str(out_file.resolve())}")
-        with open(out_file, "w") as j_file:
+        with open(str(out_file), "w") as j_file:
             for j, j_value in self.j_values.items():
                 j_value = self.j_values[j]
                 j_file.write(f"{j}\t{round(j_value,2)}\n")
+        logging.info(f"Output file path: {str(out_file.resolve())}")

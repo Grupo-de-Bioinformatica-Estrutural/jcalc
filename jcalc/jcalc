@@ -109,5 +109,5 @@ if __name__ == "__main__":
         pdb_J.get_atoms_vector()
         pdb_J.create_j_dict()
         pdb_J.calc_all_j()
-        pdb_J.write_pdb_results("teste.txt")
+        pdb_J.write_pdb_results()
         logging.info("Ended JCalc analysis for PDB file")

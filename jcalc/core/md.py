@@ -35,14 +35,14 @@ class JCalcMd:
               JCalcMd.create_frames()
         """
         frames_dir = self.frames_dir
-        logging.info(f"Creating frames, path: {str(frames_dir.resolve())}")
         if frames_dir.exists():
             logging.error(f"Dir {str(frames_dir.resolve())} exists, \
 please rename it or remove it")
         else:
             frames_dir.mkdir()
+        logging.info(f"Creating frames, path: {str(frames_dir.resolve())}")
 
-        subprocess.call(f"echo non-Water non-Water non-Water | \
+        subprocess.call(f"echo non-Water non-Water | \
                           {GROMACS_VERSION} trjconv -s {self.tpr} \
                           -f {self.xtc} -sep -skip {self.skip} \
                           -o {str(frames_dir.resolve())}/frame_.pdb -pbc mol \
@@ -216,7 +216,7 @@ please rename it or remove it")
                 string, statitics output file name
         """
 
-        with open(out_name, "w") as out:
+        with open(str(out_name), "w") as out:
             for j, mean_value in self.mean_results.items():
                 out.write(f"{j}_mean:\t{round(mean_value,2)}\n")
                 out.write(f"{j}_stdev:\t{round(self.stdev_results[j],2)}\n")
@@ -233,8 +233,8 @@ please rename it or remove it")
         for j in self.j_names:
             out_file = self.wkdir.joinpath(f"{j}_values.tsv")
             logging.info(f"Writing J {j} values through MD, path: \
-{str(out_file.resolve())}")
-            with open(out_file, "w") as j_file:
+{str(out_file)}")
+            with open(str(out_file), "w") as j_file:
                 for pdb in self.all_j_values:
                     j_value = self.all_j_values[pdb].j_values[j]
                     j_file.write(f"{pdb}\t{round(j_value,2)}\n")
@@ -256,9 +256,9 @@ please rename it or remove it")
 
         # Write statistics results
         stats_file = self.wkdir.joinpath(f"{stats_filename}")
+        self.write_statistics(out_name=stats_file)
         logging.info(f"Writing J statistics resuls, path: \
 {str(stats_file.resolve())}")
-        self.write_statistics(out_name=stats_file)
 
         # Write J values results through Molecular Dynamics
         self.write_j_values()
