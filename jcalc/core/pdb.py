@@ -91,7 +91,7 @@ class JCalcPdb:
 
         subs_list = []
         # j_atoms = [j[0] for j in j_atoms]
-        center = self.atom_dict[cx_atom][2]
+        center = self.atom_dict[cy_atom][2]
         ns = NeighborSearch(self.atom_list)
         neighbors = ns.search(center, 1.7)
         for neigh_atom in neighbors:
