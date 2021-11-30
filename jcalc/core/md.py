@@ -80,7 +80,7 @@ please rename it or remove it")
                             old_h.append(cur_line[2])
 
                     new_file_lines.append(line)
-                except Exception as error:
+                except Exception:
                     continue
 
         # Now, we have all hidrogens names, and we can add new ones without
@@ -113,7 +113,6 @@ please rename it or remove it")
             Usage:
               JCalcMd.add_hydrogen()
         """
-        jobs = []
         logging.info("Adding hydrogen to frames (GROMOS non-polar hydrogen)")
         frames_hydro = self.frames_dir.joinpath("hydro")
         frames_hydro.mkdir()
