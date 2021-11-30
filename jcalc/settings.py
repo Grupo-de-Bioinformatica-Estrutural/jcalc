@@ -1,4 +1,4 @@
-JCALC_VERSION = "1.0.2"
+JCALC_VERSION = "1.1.0"
 
 HUGGINS_ELECTRO = {
     "O": 1.3,

@@ -4,8 +4,6 @@ import subprocess
 import statistics
 import logging
 from pathlib import Path
-import multiprocessing
-
 
 # Base imports
 from jcalc.core.pdb import JCalcPdb
@@ -47,6 +45,8 @@ please rename it or remove it")
                           -f {self.xtc} -sep -skip {self.skip} \
                           -o {str(frames_dir.resolve())}/frame_.pdb -pbc mol \
                           -center",
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.STDOUT,
                         shell=True
                         )
         frames = os.listdir(str(frames_dir.resolve()))
@@ -81,8 +81,6 @@ please rename it or remove it")
 
                     new_file_lines.append(line)
                 except Exception as error:
-                    new_file_lines.append(line)
-                    logging.warning(f"Error {error} at renaming hydrogen")
                     continue
 
         # Now, we have all hidrogens names, and we can add new ones without
@@ -117,27 +115,32 @@ please rename it or remove it")
         """
         jobs = []
         logging.info("Adding hydrogen to frames (GROMOS non-polar hydrogen)")
-        for pdb in self.frames:
-            process = multiprocessing.Process(
-                target=self.cmd_addhydro,
-                args=(pdb,)
-                )
-            jobs.append(process)
-            process.start()
-        for j in jobs:
-            j.join()
+        frames_hydro = self.frames_dir.joinpath("hydro")
+        frames_hydro.mkdir()
 
-    def cmd_addhydro(self, pdb):
-        """ Description:
+        cmd_add = (
+            f"cd {str(frames_hydro.resolve())} && "
+            f"obabel -ipdb ../*.pdb -opdb -h -m && "
+            "mv * ../ && "
+            "cd ../ && "
+            "rm -r hydro"
+        )
+        subprocess.call(
+            cmd_add,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+            shell=True
+        )
 
-            Usage:
-        """
-        frames_dir = self.frames_dir
-        pdb_file = f"{str(frames_dir.resolve())}/{pdb}"
-        cmd_add = f"obabel -ipdb {pdb_file} \
--opdb -O {pdb_file} -h"
-        subprocess.call(cmd_add, shell=True)
-        self.rename_hydro(f"{pdb_file}")
+        frames = os.listdir(str(self.frames_dir.resolve()))
+        frames = sorted(
+            frames,
+            key=lambda x: int(x.split("_")[1].split(".")[0])
+        )
+        self.frames = frames
+
+        for pdb in frames:
+            self.rename_hydro(f"{str(self.frames_dir.resolve())}/{pdb}")
 
     def calc_md_j(self):
         """ Description:
