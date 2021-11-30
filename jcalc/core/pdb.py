@@ -22,7 +22,7 @@ class JCalcPdb:
 
     def __init__(self, pdb, j_input):
 
-        parser = PDBParser()
+        parser = PDBParser(QUIET=True)
         self.wkdir = Path.cwd()
         self.pdb = pdb.replace(".pdb", "")
         self.struct = parser.get_structure(pdb, pdb)
